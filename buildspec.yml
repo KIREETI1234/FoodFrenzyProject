@@ -1,28 +1,19 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      java: corretto17
-      docker: 20
-    commands:
-      - echo Installing MySQL client...
-      - yum install -y mysql jq maven
-
   pre_build:
     commands:
+      - echo Installing dependencies...
+      - yum install -y jq mysql
       - echo Starting MySQL container...
       - docker run --name mysql-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=FoodFrenzy -p 3306:3306 -d mysql:8.0
       - echo Waiting for MySQL to initialize...
       - sleep 30
-
-      - echo Setting up variables...
+      - echo Logging in to Amazon ECR...
       - ACCOUNT_ID=084828586975
       - REGION=us-east-1
       - REPO_NAME=my-app-repo
       - IMAGE_TAG=v1.$CODEBUILD_BUILD_NUMBER
-
-      - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com
 
   build:
